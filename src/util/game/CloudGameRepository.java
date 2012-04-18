@@ -75,7 +75,7 @@ public final class CloudGameRepository extends GameRepository {
     protected Set<String> getUncachedGameKeys() {
         Set<String> theKeys = new HashSet<String>();
         for(File game : theCacheDirectory.listFiles()) {
-            theKeys.add(game.getName().replace(".zip", ""));
+            theKeys.add(game.getName().replace(".Z", ""));
         }
         return theKeys;
     }
@@ -204,7 +204,7 @@ public final class CloudGameRepository extends GameRepository {
     private synchronized void saveGameToCache(String theKey, Game theGame) {
         if (theGame == null) return;
         
-        File theGameFile = new File(theCacheDirectory, theKey + ".zip");
+        File theGameFile = new File(theCacheDirectory, theKey + ".Z");
         try {
             theGameFile.createNewFile();
             FileOutputStream fOut = new FileOutputStream(theGameFile);
@@ -221,7 +221,7 @@ public final class CloudGameRepository extends GameRepository {
     }
     
     private synchronized Game loadGameFromCache(String theKey) {
-        File theGameFile = new File(theCacheDirectory, theKey + ".zip");        
+        File theGameFile = new File(theCacheDirectory, theKey + ".Z");        
         String theLine = null;
         try {
             FileInputStream fIn = new FileInputStream(theGameFile);
