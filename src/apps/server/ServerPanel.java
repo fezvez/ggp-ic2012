@@ -6,11 +6,19 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.IOException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,11 +40,13 @@ import util.ui.NativeUI;
 import apps.server.error.ErrorPanel;
 import apps.server.history.HistoryPanel;
 import apps.server.publishing.PublishingPanel;
+import apps.server.registration.RegistrationServer;
 import apps.server.states.StatesPanel;
 import apps.server.visualization.VisualizationPanel;
 
 @SuppressWarnings("serial")
-public final class ServerPanel extends JPanel implements ActionListener
+public final class ServerPanel extends JPanel 
+	implements ActionListener, ItemListener
 {    
 	private static void createAndShowGUI(ServerPanel serverPanel)
 	{
@@ -78,6 +88,23 @@ public final class ServerPanel extends JPanel implements ActionListener
 	private final JTextField startClockTextField;
 	private final GameSelector gameSelector;
 
+	private final List<JComboBox> playerComboBoxes;
+	private Map<String, URL> registeredPlayers;
+	
+	static private String manualConfigOption = "MANUAL_CONFIG";
+
+	private JComboBox generatePlayerComboBox() {
+		JComboBox result = new JComboBox();
+
+		result.addItem(manualConfigOption);
+		for (String name : registeredPlayers.keySet()) {
+			result.addItem(name);
+		}
+		result.addItemListener(this);
+		
+		return result;
+	}
+	
 	public ServerPanel()
 	{
 		super(new GridBagLayout());
@@ -98,6 +125,18 @@ public final class ServerPanel extends JPanel implements ActionListener
 		playClockTextField.setColumns(15);
 
 		gameSelector = new GameSelector();
+		
+		playerComboBoxes = new ArrayList<JComboBox>();
+		registeredPlayers = new HashMap<String, URL>();
+		try {
+			registeredPlayers = RegistrationServer.queryList();
+		} catch (UnknownHostException e) {
+		} catch (IOException e) {
+		}
+		
+		if (registeredPlayers.size() == 0) {
+			System.out.println("No registered players found ...");
+		}
 		
 		int nRowCount = 0;
 		managerPanel.setBorder(new TitledBorder("Manager"));
@@ -200,11 +239,13 @@ public final class ServerPanel extends JPanel implements ActionListener
                 managerPanel.remove(roleLabels.get(i));
                 managerPanel.remove(hostportTextFields.get(i));
                 managerPanel.remove(playerNameTextFields.get(i));
+                managerPanel.remove(playerComboBoxes.get(i));
             }
 
             roleLabels.clear();
             hostportTextFields.clear();
             playerNameTextFields.clear();
+            playerComboBoxes.clear();
 
             validate();
             runButton.setEnabled(false);
@@ -220,18 +261,42 @@ public final class ServerPanel extends JPanel implements ActionListener
                 roleLabels.add(new JLabel(roles.get(i).getName().toString() + ":"));
                 hostportTextFields.add(new JTextField("127.0.0.1:" + (GamePlayer.DEFAULT_PLAYER_PORT + i)));
                 playerNameTextFields.add(new JTextField("defaultPlayerName"));
-
+                playerComboBoxes.add(generatePlayerComboBox());
+                
                 hostportTextFields.get(i).setColumns(15);
                 playerNameTextFields.get(i).setColumns(15);
 
                 managerPanel.add(roleLabels.get(i), new GridBagConstraints(0, newRowCount, 1, 1, 1.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(5, 5, 5, 5), 5, 5));
+                managerPanel.add(playerComboBoxes.get(i), new GridBagConstraints(1, newRowCount++, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 5, 5));
                 managerPanel.add(hostportTextFields.get(i), new GridBagConstraints(1, newRowCount++, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 5, 5));
                 managerPanel.add(playerNameTextFields.get(i),  new GridBagConstraints(1, newRowCount++, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 5, 5));
+                
             }
             managerPanel.add(runButton, new GridBagConstraints(1, newRowCount, 1, 1, 0.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
 
             validate();
             runButton.setEnabled(true);
-        }        
+        }
     }
+
+	@Override
+	public void itemStateChanged(ItemEvent arg0) {
+		for (int i = 0; i < playerComboBoxes.size(); i++) {
+    		JComboBox comboBox = playerComboBoxes.get(i);
+    		
+    		if (arg0.getSource() == comboBox) {
+    			String itemName = (String)arg0.getItem();
+    			JTextField host = hostportTextFields.get(i);
+    			JTextField playerName = playerNameTextFields.get(i);
+    			if (itemName.equals(manualConfigOption)) {
+    				host.setText("");
+    				playerName.setText("");
+    			} else {
+	    			URL curURL = this.registeredPlayers.get(itemName);
+	    			host.setText(curURL.getHost() + ":" + curURL.getPort());
+	    			playerName.setText(itemName);
+    			}
+    		}
+    	}
+	}
 }
