@@ -51,7 +51,15 @@ public final class GamePlayer extends Thread implements Subject
     	this(port, gamer, null);
     }
     
-    public GamePlayer(int port, Gamer gamer, String namePrefix) throws IOException
+    public GamePlayer(String host, int port, Gamer gamer) throws IOException {
+    	this(host, port, gamer, null);
+    }
+    
+    public GamePlayer(int port, Gamer gamer, String namePrefix) throws IOException {
+    	this(null, port, gamer, namePrefix);
+    }
+    
+    public GamePlayer(String host, int port, Gamer gamer, String namePrefix) throws IOException
     {
     	if (namePrefix == null) {
     		namePrefix = "RAND_" + rand.nextInt() + "_";
@@ -61,7 +69,11 @@ public final class GamePlayer extends Thread implements Subject
         listener = null;
         connection = null;
         
-        this.address = NetworkUtils.getALocalIPAddress();
+        if (host == null) {
+        	this.address = NetworkUtils.getALocalIPAddress();
+        } else {
+        	this.address = InetAddress.getByName(host);
+        }
         
         instanceName = namePrefix + gamer.getName();
         while(listener == null) {

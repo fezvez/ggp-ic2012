@@ -96,7 +96,7 @@ public class KioskGamer extends StateMachineGamer implements Observer {
             }
         } else if(event instanceof ServerNewGameStateEvent) {
             stateFromServer = ((ServerNewGameStateEvent)event).getState();
-        } else if(event instanceof ServerCompletedMatchEvent && theGUI != null) {
+        } else if(event instanceof ServerCompletedMatchEvent) {
             theGUI.updateGameState(stateFromServer);
             
             List<Role> theRoles = getStateMachine().getRoles();
