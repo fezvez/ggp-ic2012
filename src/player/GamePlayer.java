@@ -43,6 +43,7 @@ public final class GamePlayer extends Thread implements Subject
 	private PlayerServerMode serverMode;
 	private boolean switchServerMode = false;
 	private PlayerServerMode newServerMode = null;
+	private boolean doAbort;
     
     public static int DEFAULT_PLAYER_PORT = 9147;
 
@@ -196,6 +197,8 @@ public final class GamePlayer extends Thread implements Subject
 					this.serverMode = newServerMode;
 					this.switchServerMode = false;
 				}
+				
+				if (doAbort) abortAll();
 			}
 			catch (Exception e)
 			{
@@ -243,7 +246,7 @@ public final class GamePlayer extends Thread implements Subject
 	@Override
 	public void interrupt () {
 		clearRegistration();
-		abortAll();
+		doAbort = true;
 		
 		if (this.serverMode != null) {
 			try {
