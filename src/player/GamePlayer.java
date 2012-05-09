@@ -38,7 +38,6 @@ public final class GamePlayer extends Thread implements Subject
     private String instanceName;
     private String regServerIP = RegistrationServer.DEFAULT_REG_IP;
     private int regServerPort = RegistrationServer.DEFAULT_REG_PORT;
-    private Random rand = new Random();
 
 	private PlayerServerMode serverMode;
 	private boolean switchServerMode = false;
@@ -59,11 +58,8 @@ public final class GamePlayer extends Thread implements Subject
     	this(null, port, gamer, namePrefix);
     }
     
-    public GamePlayer(String host, int port, Gamer gamer, String namePrefix) throws IOException
+    public GamePlayer(String host, int port, Gamer gamer, String namePostfix) throws IOException
     {
-    	if (namePrefix == null) {
-    		namePrefix = "RAND_" + rand.nextInt() + "_";
-    	}
     	
         observers = new ArrayList<Observer>();
         listener = null;
@@ -74,7 +70,6 @@ public final class GamePlayer extends Thread implements Subject
         	this.address = InetAddress.getByName(host);
         }
         
-        instanceName = namePrefix + gamer.getName();
         while(listener == null) {
             try {
                 listener = new ServerSocket(port, 0, address);
@@ -89,6 +84,17 @@ public final class GamePlayer extends Thread implements Subject
         
         this.port = port;
         this.gamer = gamer;
+        
+        if (namePostfix == null) {
+    		namePostfix = "_" + listener.getInetAddress().getHostName() + ":" + listener.getLocalPort();
+    	}
+
+        instanceName = gamer.getName() + namePostfix;
+    }
+    
+    public void setRegistrationServer(String host, int port) {
+    	this.regServerIP = host;
+    	this.regServerPort = port;
     }
 
 	public void addObserver(Observer observer)
@@ -120,8 +126,9 @@ public final class GamePlayer extends Thread implements Subject
 		Thread registrationThread = new Thread() {
 			@Override
 			public void run() {
+				if (regServerIP == null) return;
 				try {
-					Thread.sleep(500);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -208,6 +215,8 @@ public final class GamePlayer extends Thread implements Subject
 	}
 
 	public void clearRegistration() {
+		if (regServerIP == null) return;
+		
 		try {
 			Socket socket = new Socket(regServerIP, regServerPort);
 			RegistrationServer.sendRegistration(socket, instanceName, "", 0);

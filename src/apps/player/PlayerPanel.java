@@ -5,8 +5,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -73,6 +71,7 @@ public final class PlayerPanel extends JPanel implements WindowListener, MouseLi
 	private final JTabbedPane playersTabbedPane;
 
 	private final JTextField portTextField;
+	private final JTextField regServerField;
 
 	private final JComboBox typeComboBox;
 	
@@ -87,6 +86,7 @@ public final class PlayerPanel extends JPanel implements WindowListener, MouseLi
 		super(new GridBagLayout());
 
 		portTextField = new JTextField(defaultPort.toString());
+		regServerField = new JTextField();
 		typeComboBox = new JComboBox();
 		createButton = new JButton(createButtonMethod(this));
 		abortButton = new JButton(abortButtonMethod(this));
@@ -108,12 +108,15 @@ public final class PlayerPanel extends JPanel implements WindowListener, MouseLi
 		}
 
 		JPanel managerPanel = new JPanel(new GridBagLayout());
+		
 		managerPanel.setBorder(new TitledBorder("Manager"));
 
 		managerPanel.add(new JLabel("Port:"), new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(20, 5, 5, 5), 5, 5));
 		managerPanel.add(portTextField, new GridBagConstraints(1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(20, 5, 5, 5), 5, 5));
 		managerPanel.add(new JLabel("Type:"), new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(5, 5, 5, 5), 5, 5));
 		managerPanel.add(typeComboBox, new GridBagConstraints(1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 5, 5));
+		managerPanel.add(new JLabel("Reg Server:"), new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(5, 5, 5, 5), 5, 5));
+		managerPanel.add(regServerField, new GridBagConstraints(1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 5, 5, 5), 5, 5));
 		managerPanel.add(createButton, new GridBagConstraints(1, 3, 1, 1, 1.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 40, 5), 0, 0));
 		managerPanel.add(abortButton, new GridBagConstraints(1, 3, 1, 1, 1.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
 		
@@ -153,8 +156,19 @@ public final class PlayerPanel extends JPanel implements WindowListener, MouseLi
 					gamer.addObserver(matchPanel);
 					gamer.addObserver(detailPanel);
 
+					// Registration server stuff
+					String addressString = panel.regServerField.getText(); 
+					String[] splitAddress = addressString.split(":");
+					String regHost = null;
+					int regPort = -1;
+					if (splitAddress.length > 1) {
+			            regHost = splitAddress[0];
+			            regPort = Integer.parseInt(splitAddress[1]);
+					}
+		            
 					GamePlayer player = new GamePlayer(port, gamer);
 					player.addObserver(networkPanel);
+					player.setRegistrationServer(regHost, regPort);
 					player.start();					
 
 					JTabbedPane tab = new JTabbedPane();
