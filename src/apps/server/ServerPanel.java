@@ -9,7 +9,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import player.GamePlayer;
 import server.GameServer;
 import util.game.Game;
 import util.match.Match;
+import util.networking.NetworkUtils;
 import util.statemachine.Role;
 import util.statemachine.StateMachine;
 import util.statemachine.implementation.prover.ProverStateMachine;
@@ -61,7 +64,7 @@ public final class ServerPanel extends JPanel
 		frame.setVisible(true);
 	}
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws SocketException, UnknownHostException
 	{
 	    NativeUI.setNativeUI();
 	
@@ -89,15 +92,17 @@ public final class ServerPanel extends JPanel
 	private final List<JLabel> roleLabels;
 	private final JButton runButton;
 	private final JButton refreshRegButton;
-
+	
 	private final JTextField startClockTextField;
 	private final GameSelector gameSelector;
+	
+	private final InetAddress defaultPlayerIP;
 
 	private final List<JComboBox> playerComboBoxes;
 	private Map<String, URL> registeredPlayers;
 	
 	static private String manualConfigOption = "MANUAL_CONFIG";
-
+	
 	private JComboBox generatePlayerComboBox() {
 		JComboBox result = new JComboBox();
 
@@ -110,7 +115,7 @@ public final class ServerPanel extends JPanel
 		return result;
 	}
 	
-	public ServerPanel()
+	public ServerPanel() throws SocketException, UnknownHostException
 	{
 		super(new GridBagLayout());
 		
@@ -135,6 +140,8 @@ public final class ServerPanel extends JPanel
 		
 		playerComboBoxes = new ArrayList<JComboBox>();
 		registeredPlayers = new HashMap<String, URL>();
+		
+		defaultPlayerIP = NetworkUtils.getALocalIPAddress();
 
 		this.refreshRegServer();
 		
@@ -298,7 +305,7 @@ public final class ServerPanel extends JPanel
         int newRowCount = 7;
         for (int i = 0; i < roles.size(); i++) {
             roleLabels.add(new JLabel(roles.get(i).getName().toString() + ":"));
-            hostportTextFields.add(new JTextField("127.0.0.1:" + (GamePlayer.DEFAULT_PLAYER_PORT + i)));
+            hostportTextFields.add(new JTextField(defaultPlayerIP.getHostAddress() + ":" +(GamePlayer.DEFAULT_PLAYER_PORT + i)));
             playerNameTextFields.add(new JTextField("defaultPlayerName"));
             playerComboBoxes.add(generatePlayerComboBox());
             
