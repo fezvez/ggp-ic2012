@@ -38,13 +38,12 @@ public class PingRequestThread extends Thread {
 			
 			HttpWriter.writeAsClient(socket, theHost.getHostName(), request, playerName);
 			
-			String response = HttpReader.readAsClient(socket, 500);
+			String response = HttpReader.readAsClient(socket);
 			if (PingRequest.PING_SUCCESS.equals(response)) result = true;
 		
 			socket.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

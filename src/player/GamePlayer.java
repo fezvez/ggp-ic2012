@@ -2,14 +2,10 @@ package player;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 
@@ -22,10 +18,10 @@ import player.event.PlayerReceivedMessageEvent;
 import player.event.PlayerSentMessageEvent;
 import player.request.factory.RequestFactory;
 import player.request.grammar.Request;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-import util.http.HttpReader;
-import util.http.HttpWriter;
+import player.request.modes.BounceServerMode;
+import player.request.modes.DisjointHttpServerMode;
+import player.request.modes.PlayerServerMode;
+import server.threads.PingRequestThread;
 import util.logging.GamerLogger;
 import util.networking.NetworkUtils;
 import util.observer.Event;
@@ -39,11 +35,14 @@ public final class GamePlayer extends Thread implements Subject
     private ServerSocket listener;
     private InetAddress address;
     private final List<Observer> observers;
-    private Socket connection;
     private String instanceName;
     private String regServerIP = RegistrationServer.DEFAULT_REG_IP;
     private int regServerPort = RegistrationServer.DEFAULT_REG_PORT;
     private Random rand = new Random();
+
+	private PlayerServerMode serverMode;
+	private boolean switchServerMode = false;
+	private PlayerServerMode newServerMode = null;
     
     public static int DEFAULT_PLAYER_PORT = 9147;
 
@@ -67,7 +66,6 @@ public final class GamePlayer extends Thread implements Subject
     	
         observers = new ArrayList<Observer>();
         listener = null;
-        connection = null;
         
         if (host == null) {
         	this.address = NetworkUtils.getALocalIPAddress();
@@ -80,6 +78,7 @@ public final class GamePlayer extends Thread implements Subject
             try {
                 listener = new ServerSocket(port, 0, address);
                 System.out.println("Gamer " + gamer.getName() + " started on address " + address + " " + " port " + port);
+        		this.serverMode = new DisjointHttpServerMode(listener);
             } catch (IOException ex) {
                 listener = null;
                 port++;
@@ -116,10 +115,18 @@ public final class GamePlayer extends Thread implements Subject
 	@Override
 	public void run()
 	{
+		final GamePlayer playerReference = this;
 		Thread registrationThread = new Thread() {
 			@Override
 			public void run() {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
 				// Attempt to register with the registration server
+				System.out.println("Attempting to register...");
 				String response = "";
 				try {
 					Socket socket = new Socket(regServerIP, regServerPort);
@@ -127,20 +134,43 @@ public final class GamePlayer extends Thread implements Subject
 							address.getHostAddress().toString(), listener.getLocalPort());
 					socket.close();
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					System.out.println("Registration server connection failed.");
 				}
 				
 				if (RegistrationServer.SUCCESS_RESP.equals(response)) {
 					System.out.println("Registration with " + regServerIP + " succeeded.");
 				} else if (RegistrationServer.INACCESSIBLE_RESP.equals(response)) {
 					System.out.println("Registration with " + regServerIP + " unsuccessful: player inaccessible");
-				} else {
-					System.out.println("Registration with " + regServerIP + " on port " + regServerPort + "");
+					System.out.println("Attempting to setup bounce registration...");
+
+					setupBounce();
+				} 
+			}
+			
+			public void setupBounce() {
+				try {
+					Socket socket = new Socket(regServerIP, regServerPort);
+					boolean success = RegistrationServer.sendBounceRegistration(socket, instanceName);
+					if (success) {
+						BounceServerMode bounceMode = new BounceServerMode(socket);
+						playerReference.changeServerMode(bounceMode);
+						System.out.println("Bounce registration successful");
+					} else {
+						System.out.println("Bounce registration failed...");
+						socket.close();
+					}
+					
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					System.out.println("Registration server connection failed.");
 				}
+				
 			}
 		};
 		
 		registrationThread.start();
+		
 		
 		// Wait for GGP messages
 		System.out.println(gamer.getName() + " listening ...");
@@ -148,11 +178,7 @@ public final class GamePlayer extends Thread implements Subject
 		{
 			try
 			{
-				connection = listener.accept();
-				String in = HttpReader.readAsServer(connection);
-				if (in.length() == 0) {
-				    throw new IOException("Empty message received.");
-				}
+				String in = serverMode.getRequest();
 				
 				notifyObservers(new PlayerReceivedMessageEvent(in));
 				GamerLogger.log("GamePlayer", "[Received at " + System.currentTimeMillis() + "] " + in, GamerLogger.LOG_LEVEL_DATA_DUMP);
@@ -160,12 +186,16 @@ public final class GamePlayer extends Thread implements Subject
 				RequestFactory factory = new RequestFactory();
 				Request request = factory.create(gamer, in);
 				String out = request.process(System.currentTimeMillis());
+				serverMode.sendResponse(out);
 				
-				HttpWriter.writeAsServer(connection, out);
-				connection.close();
-				connection = null;
 				notifyObservers(new PlayerSentMessageEvent(out));
 				GamerLogger.log("GamePlayer", "[Sent at " + System.currentTimeMillis() + "] " + out, GamerLogger.LOG_LEVEL_DATA_DUMP);
+				
+				if (switchServerMode) {
+					this.serverMode.tearDown();
+					this.serverMode = newServerMode;
+					this.switchServerMode = false;
+				}
 			}
 			catch (Exception e)
 			{
@@ -179,9 +209,7 @@ public final class GamePlayer extends Thread implements Subject
 			Socket socket = new Socket(regServerIP, regServerPort);
 			RegistrationServer.sendRegistration(socket, instanceName, "", 0);
 			socket.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+		} catch (IOException e1) { }
 	}
 
 	// Simple main function that starts a RandomGamer on a specified port.
@@ -215,21 +243,11 @@ public final class GamePlayer extends Thread implements Subject
 	@Override
 	public void interrupt () {
 		clearRegistration();
-		
 		abortAll();
 		
-		if (connection != null) {
+		if (this.serverMode != null) {
 			try {
-				connection.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			connection = null;
-		}
-		
-		if (listener != null) {
-			try {
-				listener.close();
+				this.serverMode.tearDown();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -240,5 +258,20 @@ public final class GamePlayer extends Thread implements Subject
 		if (gamer != null) {
 			gamer.abortAll();
 		}
+	}
+	
+	/**
+	 * Prepares to switch the server mode at the next available opportunity
+	 * @param newMode
+	 */
+	public synchronized void changeServerMode(PlayerServerMode newMode) {
+		this.newServerMode = newMode;
+		this.switchServerMode = true;
+		
+		// Ping ourselves to make sure we don't stick in the ServerSocket accept.
+		PingRequestThread pingThread = 
+				new PingRequestThread(this.listener.getInetAddress().getHostAddress(), 
+				this.listener.getLocalPort(), this.instanceName);
+		pingThread.start();
 	}
 }

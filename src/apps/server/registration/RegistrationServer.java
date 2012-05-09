@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import server.threads.PingRequestThread;
+import util.http.HttpReader;
+import util.http.HttpWriter;
 import util.networking.NetworkUtils;
 
 
@@ -35,24 +37,29 @@ public class RegistrationServer {
 	public static String INACCESSIBLE_RESP = "inaccessible";
 	public static String LIST_CMD = "list";
 
-	class Forward {
+	class Forward extends Thread {
 		public final Socket playerSide;
 		public final ServerSocket exposedSide;
+		public final PrintWriter playerWriter;
+		public final BufferedReader playerReader;
 		
-		public Forward(Socket playerSide) throws IOException {
+		public Forward(Socket playerSide, BufferedReader in, PrintWriter out) throws IOException {
 			this.exposedSide = generateServerSocket();
 			this.playerSide = playerSide;
+			this.playerReader = in;
+			this.playerWriter = out;
 		}
 		
 		private ServerSocket generateServerSocket() throws IOException {
 			InetAddress inetAddress = NetworkUtils.getALocalIPAddress();
 			ServerSocket result = new ServerSocket(0, 0, inetAddress);
-			String host = result.getInetAddress().getHostAddress();
 			return result;
 		}
 		
 		public void tearDown() throws IOException {
 			if (playerSide != null) {
+				this.playerReader.close();
+				this.playerWriter.close();
 				playerSide.close();
 			}
 			
@@ -60,18 +67,46 @@ public class RegistrationServer {
 				exposedSide.close();
 			}
 		}
+		
+		/**
+		 * Pipe connections to and from the player
+		 */
+		@Override 
+		public void run() {
+			while (!interrupted()) {
+				try {
+					Socket connection = exposedSide.accept();
+					String in = HttpReader.readAsServer(connection);
+					if (!in.endsWith("\n")) in += "\n";
+					System.out.println("Writing to player " + in);
+					this.playerWriter.write(in);
+					this.playerWriter.flush();
+					String out = this.playerReader.readLine();
+					System.out.println("Read from player " + out);
+					if (out != null) HttpWriter.writeAsServer(connection, out);
+					connection.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			try {
+				tearDown();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	};
 	
 	HashMap<String, URL> registrations = new HashMap<String, URL>();
 	HashMap<String, Forward> forwards = new HashMap<String, Forward>();
-	int port;
+	int serverPort;
 	
 	public RegistrationServer() {
 		this(DEFAULT_REG_PORT);
 	}
 	
 	public RegistrationServer(int port) {
-		this.port = port;
+		this.serverPort = port;
 	}
 	
 	static public void main(String argv[]) throws IOException {
@@ -83,6 +118,7 @@ public class RegistrationServer {
 			Socket newConnection = socket.accept();
 			BufferedReader in;
 			in = new BufferedReader(new InputStreamReader(newConnection.getInputStream()));
+			PrintWriter out = new PrintWriter(newConnection.getOutputStream(), true);
 			
 			String message = in.readLine();
 			if (message == null) {
@@ -101,30 +137,45 @@ public class RegistrationServer {
 				if (command.equals(REGISTRATION_CMD) && tokens.length > 2) {
 					String name = tokens[1];
 					String host = null;
-					int port = -1;
+					int registrationPort = -1;
 					if (tokens.length > 3) {
 						host = tokens[2];
-						port = Integer.parseInt(tokens[3]);
+						registrationPort = Integer.parseInt(tokens[3]);
 					}
-					response = regServer.register(name, host, port);
-				} else if (command.equals(BOUNCE_CMD) && tokens.length > 2) {
+					if (host != null) {
+						boolean accessible = verifyPlayerAccessible(name, host, registrationPort);
+						if (accessible) {
+							regServer.register(name, host, registrationPort);
+							response = SUCCESS_RESP + "\n";
+						} else {
+							response = INACCESSIBLE_RESP;
+						}
+					} else {
+						regServer.clearRegistration(name);
+						response = "clear\n";
+					}
+				} else if (command.equals(BOUNCE_CMD) && tokens.length > 1) {
 					String name = tokens[1];
-					Forward newForward = regServer.new Forward(newConnection);
+					Forward newForward = regServer.new Forward(newConnection, in, out);
 					ServerSocket newSocket = newForward.exposedSide;
 					String host = newSocket.getInetAddress().getHostAddress();
 					regServer.register(name, host, newSocket.getLocalPort());
+					newForward.start();
 					keepAlive = true;
+					response = SUCCESS_RESP + "\n";
 				} else if (command.equals(LIST_CMD)) {
 					response = regServer.list();
 				}
 				
-				PrintWriter out = new PrintWriter(newConnection.getOutputStream(), true);
 				out.write(response);
-				out.close();
+				out.flush();
 			}
 			
-			in.close();
-			if (!keepAlive) newConnection.close();
+			if (!keepAlive) {
+				in.close();
+				out.close();
+				newConnection.close();				
+			}
 		}
 	}
 	
@@ -133,35 +184,26 @@ public class RegistrationServer {
 		return jobject.toString() + "\n";
 	}
 
-	private String register(String name, String host, int port2) throws MalformedURLException {
-		String response = FAILURE_MSG + "\n";
-		if (host != null) {
-			URL url = new URL("http", host, port, "");
-			boolean accessible = verifyPlayerAccessible(name, url);
-			if (accessible) {
-				registrations.put(name, url);
-				response = SUCCESS_RESP + "\n";
-			} else {
-				response = INACCESSIBLE_RESP;
-			}
-		} else {
-			clearRegistration(name);
-			response = "clear\n";
-		}
+	private void register(String name, String host, int registrationPort) throws MalformedURLException {
+		URL url = new URL("http", host, registrationPort, "");
+		registrations.put(name, url);
 		
-		displayRegistrations(registrations);
-		return response;
+		displayRegistrations(registrations);	
 	}
 	
 	public void clearRegistration(String name) {
 		this.registrations.remove(name);
-		this.forwards.remove(name);
+		Forward forward = this.forwards.remove(name);
+		if (forward != null) {
+			forward.interrupt();
+		}
+		displayRegistrations(registrations);
 	}
 
-	private static boolean verifyPlayerAccessible(String name, URL url) {
+	private static boolean verifyPlayerAccessible(String name, String host, int playerPort) {
 		// Attempt to ping the player at the given URL
 		PingRequestThread pingThread = 
-				new PingRequestThread(url.getHost(), url.getPort(), name);
+				new PingRequestThread(host, playerPort, name);
 		pingThread.run();
 		return pingThread.result;
 	}
@@ -169,8 +211,12 @@ public class RegistrationServer {
 	static private void displayRegistrations(Map<String,URL> registrations) {
 		System.out.println();
 		System.out.println("Current Registrations: ");
-		for (String name : registrations.keySet()) {
-			System.out.println("  " + name + ": " + registrations.get(name).toString());
+		if (registrations.size() > 0) {
+			for (String name : registrations.keySet()) {
+				System.out.println("  " + name + ": " + registrations.get(name).toString());
+			}
+		} else {
+			System.out.println("-- NONE --");
 		}
 	}
 
@@ -187,11 +233,22 @@ public class RegistrationServer {
 		in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
 		String response = in.readLine();
 		
-		in.close();
-		out.close();
-		
 		return response;
 
+	}
+	
+	static public boolean
+	sendBounceRegistration(Socket serverSocket, String playerName) throws IOException {
+		String message = BOUNCE_CMD + " " + playerName + "\n";
+		PrintWriter out = new PrintWriter(serverSocket.getOutputStream(), true);
+		out.write(message);
+		out.flush();
+		
+		BufferedReader in;
+		in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+		String response = in.readLine();
+		
+		return SUCCESS_RESP.equals(response);
 	}
 	
 	static public Map<String, URL>
