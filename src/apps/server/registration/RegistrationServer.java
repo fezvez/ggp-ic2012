@@ -231,6 +231,8 @@ public class RegistrationServer {
 	sendRegistration (Socket serverSocket, String playerName, String address, int port) 
 			throws IOException {
 		
+		playerName = playerName.replace(" ", "");
+		
 		String message = REGISTRATION_CMD + " " + playerName + " " + address + " " + port + "\n";
 		PrintWriter out = new PrintWriter(serverSocket.getOutputStream(), true);
 		out.write(message);
