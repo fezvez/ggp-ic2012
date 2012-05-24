@@ -41,9 +41,6 @@
 ( index 4 )
 ( index 5 )
 ( index 6 )
-( index 7 )
-( index 8 )
-( index 9 )
 
 ( board_succ 1 2 )
 ( board_succ 2 3 )
@@ -137,8 +134,8 @@
 
 ( <= terminal_assem ( game_end ?s ) ( true ( step ?s ) ) )
 
-( init ( cell 4 4 red ) )
-( init ( cell 6 6 blue ) )
+( init ( cell 3 3 red ) )
+( init ( cell 4 4 blue ) )
 
 ( <= ( legal ?p move_snake_down ) ( role ?p ) ( true ( control_snake ?p ) ) )
 ( <= ( legal ?p move_snake_up ) ( role ?p ) ( true ( control_snake ?p ) ) )
