@@ -11,7 +11,7 @@
 ( init ( cell_small 3 1 b ) )
 ( init ( cell_small 3 2 b ) )
 ( init ( cell_small 3 3 b ) )
-( init ( control_small noone1 ) )
+( init ( control_small xplayer ) )
 ( init ( control_large xplayer ) )
 ( init ( first_turn ) )
 
@@ -46,15 +46,11 @@
 ( <= ( next ( inhibit_small ?i ?j ?p ) ) ( role ?p ) ( does ?p ( play_large ?i ?j ?k ?l ?m ) ) )
 ( <= ( next ( inhibit_small ?i ?j ?p ) ) ( true ( inhibit_small ?i ?j ?p ) ) )
 
-( <= ( next ( control_small noone1 ) ) ( true ( control_small xplayer ) ) )
-( <= ( next ( control_small oplayer ) ) ( true ( control_small noone1 ) ) )
-( <= ( next ( control_small noone2 ) ) ( true ( control_small oplayer ) ) )
-( <= ( next ( control_small xplayer ) ) ( true ( control_small noone2 ) ) )
+( <= ( next ( control_small oplayer ) ) ( true ( control_small xplayer ) ) )
+( <= ( next ( control_small xplayer ) ) ( true ( control_small oplayer ) ) )
 
-( <= ( next ( control_large xplayer ) ) ( true ( control_large noone2 ) ) )
-( <= ( next ( control_large noone1 ) ) ( true ( control_large xplayer ) ) )
-( <= ( next ( control_large oplayer ) ) ( true ( control_large noone1 ) ) )
-( <= ( next ( control_large noone2 ) ) ( true ( control_large oplayer ) ) )
+( <= ( next ( control_large xplayer ) ) ( true ( control_large oplayer ) ) )
+( <= ( next ( control_large oplayer ) ) ( true ( control_large xplayer ) ) )
 
 ( <= ( row_small ?m ?x ) ( true ( cell_small ?m 1 ?x ) ) 
   ( true ( cell_small ?m 2 ?x ) ) ( true ( cell_small ?m 3 ?x ) ) )
