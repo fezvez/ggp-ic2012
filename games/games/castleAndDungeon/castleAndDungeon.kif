@@ -139,10 +139,11 @@
 ( <= ( factor_terminal ?f ) ( factor_step_end ?f ) )
 ( <= ( factor_terminal ?f ) ( treasure_acquired ?f ?p ) )
 
-( <= ( factor_goal ?f ?p 0 ) ( role ?p ) ( factor ?f ) ( not ( treasure_acquired ?f ?p ) ) )
 ( <= ( factor_goal ?f ?p 100 ) ( role ?p ) ( treasure_acquired ?f ?p ) )
 
-( <= ( goal ?p ?s ) ( factor_goal ?f ?p ?s ) ( factor_terminal ?f ) )
+( <= ( goal ?p 100 ) ( factor_goal ?f ?p 100 ) )
+( <= ( goal ?p 0 ) ( role ?p ) ( not ( factor_goal castle ?p 100 ) ) 
+  ( not ( factor_goal dungeon ?p 100 ) ) )
 
 ( <= terminal ( factor_terminal ?f ) )
 
