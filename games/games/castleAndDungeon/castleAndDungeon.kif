@@ -37,6 +37,9 @@
 ( top dungeon 1 )
 ( bottom dungeon 4 )
 
+( factor castle )
+( factor dungeon )
+
 ( board_succ castle 1 2 )
 ( board_succ castle 2 3 )
 ( board_succ castle 3 4 ) 
@@ -101,7 +104,7 @@
 ( <= ( next ( true ( frost ?d ?p ) ) ) ( true ( frost ?d ?p ) ) ( not ( casting ?p ) ) )
 ( <= ( next ( true ( frost ?d ?p ) ) ) ( does ?p ( cast ?d ) ) )
 
-( <= ( next ( true ( treasure ?f ?p ?i ?j ) ) ) ( true ( treasure ?f ?p ?i ?j ) ) )
+( <= ( next ( treasure ?f ?p ?i ?j ) ) ( true ( treasure ?f ?p ?i ?j ) ) )
 
 ( <= ( next ( true ( alive ?f ?e ?p ) ) ) ( true ( alive ?f ?e ?p ) ) ( not ( dying ?f ?e ?p ) ) )
 
@@ -131,9 +134,13 @@
 
 ( <= ( factor_step_end ?f ) ( true ( step ?f ?s ) ) ( game_end ?f ?s ) )
 
-( <= ( factor_terminal ?f ) ( factor_step_end ?f ) )
+( <= ( treasure_acquired ?f ?p ) ( true ( treasure ?f ?p ?i ?j ) ) ( true ( at ?f thief ?p ?i ?j ) ) )
 
-( <= ( factor_goal ?f ?p 0 ) ( role ?p ) ( factor_step_end ?f ) )
+( <= ( factor_terminal ?f ) ( factor_step_end ?f ) )
+( <= ( factor_terminal ?f ) ( treasure_acquired ?f ?p ) )
+
+( <= ( factor_goal ?f ?p 0 ) ( role ?p ) ( factor ?f ) ( not ( treasure_acquired ?f ?p ) ) )
+( <= ( factor_goal ?f ?p 100 ) ( role ?p ) ( treasure_acquired ?f ?p ) )
 
 ( <= ( goal ?p ?s ) ( factor_goal ?f ?p ?s ) ( factor_terminal ?f ) )
 
