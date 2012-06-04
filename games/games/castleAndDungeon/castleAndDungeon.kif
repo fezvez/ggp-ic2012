@@ -121,6 +121,14 @@
   ( true ( at dungeon dragon ?p ?i ?n ) ) ( board_succ dungeon ?j ?n ) )
 ( <= ( next ( fireball right ?i ?j ) ) ( does ?p ( breath_fire right ) )
   ( true ( at dungeon dragon ?p ?i ?n ) ) ( board_succ dungeon ?n ?j ) )
+( <= ( next ( fireball up ?i ?j ) ) ( true ( fireball up ?m ?j ) )
+  ( board_succ dungeon ?i ?m ) )
+( <= ( next ( fireball down ?i ?j ) ) ( true ( fireball up ?m ?j ) )
+  ( board_succ dungeon ?m ?i ) )
+( <= ( next ( fireball left ?i ?j ) ) ( true ( fireball up ?i ?n ) )
+  ( board_succ dungeon ?j ?n ) )
+( <= ( next ( fireball right ?i ?j ) ) ( true ( fireball up ?i ?n ) )
+  ( board_succ dungeon ?n ?j ) )
 
 ( <= ( move_in ?f ) ( move ?f ?e ?p ) )
 ( <= ( move_in castle ) ( casting ?p ) )
@@ -134,9 +142,6 @@
 ( <= ( factor_terminal ?f ) ( factor_step_end ?f ) )
 
 ( <= ( factor_goal ?f ?p 0 ) ( role ?p ) ( factor_step_end ?f ) )
-( <= ( factor_goal ?f ?p 100 ) ( role ?p ) ( true ( treasure ?f ?p ?i ?j ) ) 
-  ( true ( at ?f thief ?p ?i ?j ) ) ( true ( alive ?f thief ?p ) ) 
-  ( not ( factor_step_end ?f ) ) )
 
 ( <= ( goal ?p ?s ) ( factor_goal ?f ?p ?s ) ( factor_terminal ?f ) )
 
