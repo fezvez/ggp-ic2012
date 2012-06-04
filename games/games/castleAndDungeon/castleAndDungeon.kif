@@ -101,8 +101,8 @@
     ( does ?p ( left ?f ?e ) ) ( board_succ ?f ?j ?n ) )
 ( <= ( next ( at ?f ?e ?p ?i ?j ) ) ( true ( at ?f ?e ?p ?i ?n ) ) 
     ( does ?p ( right ?f ?e ) ) ( board_succ ?f ?n ?j ) )
-( <= ( next ( true ( frost ?d ?p ) ) ) ( true ( frost ?d ?p ) ) ( not ( casting ?p ) ) )
-( <= ( next ( true ( frost ?d ?p ) ) ) ( does ?p ( cast ?d ) ) )
+( <= ( next ( frost ?d ?p ) ) ( true ( frost ?d ?p ) ) ( not ( casting ?p ) ) )
+( <= ( next ( frost ?d ?p ) ) ( does ?p ( cast ?d ) ) )
 
 ( <= ( next ( treasure ?f ?p ?i ?j ) ) ( true ( treasure ?f ?p ?i ?j ) ) )
 
