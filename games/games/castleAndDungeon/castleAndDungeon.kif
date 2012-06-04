@@ -134,7 +134,8 @@
 
 ( <= ( factor_step_end ?f ) ( true ( step ?f ?s ) ) ( game_end ?f ?s ) )
 
-( <= ( treasure_acquired ?f ?p ) ( true ( treasure ?f ?p ?i ?j ) ) ( true ( at ?f thief ?p ?i ?j ) ) )
+( <= ( treasure_acquired ?f ?p ) ( true ( treasure ?f ?p ?i ?j ) ) 
+  ( true ( at ?f thief ?p ?i ?j ) ) ( true ( alive ?f thief ?p ) ) )
 
 ( <= ( factor_terminal ?f ) ( factor_step_end ?f ) )
 ( <= ( factor_terminal ?f ) ( treasure_acquired ?f ?p ) )
