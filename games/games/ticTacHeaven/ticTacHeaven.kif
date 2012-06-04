@@ -48,7 +48,7 @@
 ( <= ( line_small ?x ) ( diag_small ?x ) )
 ( <= open_small ( true ( cell_small ?m ?n b ) ) )
 
-( <= ( legal ?p noop ) ( role ?p ) ( not ( true ( control ?p ) ) ) )
+( <= ( legal ?p noop ) ( role ?p ) ( not ( true ( control_small ?p ) ) ) )
 ( <= ( legal ?w ( mark_small ?x ?y ) ) ( true ( cell_small ?x ?y b ) ) ( true ( control_small ?w ) ) )
 
 ( <= ( legal xplayer ( play_large ?i ?j ?k ?l x ) ) ( true ( control_large xplayer ) ) first_move_large ( empty_cell_large ?i ?j ?k ?l ) )
