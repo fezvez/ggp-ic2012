@@ -24,6 +24,10 @@
 ( <= ( base ( meta_phase ?p ) ) ( role ?p ) )
 ( <= ( base ( can_meta_mark ?p ) ) ( role ?p ) )
 
+( <= ( input ?p noop ) ( role ?p ) )
+( <= ( input ?p ( ttt_mark ?i ?j ) ) ( index ?i ) ( index ?j ) ( role ?p ) )
+( <= ( input ?p ( meta_mark ?i ?j ) ) ( index ?i ) ( index ?j ) ( role ?p ) )
+
 ( <= ( filled ?i ?j ) ( true ( cell ?i ?j ?m ) ) )
 
 ( <= ( next ( cell ?i ?j ?p ) ) ( does ?p ( ttt_mark ?i ?j ) ) )
