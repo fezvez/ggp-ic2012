@@ -19,6 +19,11 @@
 ( mark oplayer )
 ( mark meta )
 
+( <= ( base ( cell ?i ?j ?m ) ) ( index ?i ) ( index ?j ) ( mark ?m ) )
+( <= ( base ( control ?p ) ) ( role ?p ) )
+( <= ( base ( meta_phase ?p ) ) ( role ?p ) )
+( <= ( base ( can_meta_mark ?p ) ) ( role ?p ) )
+
 ( <= ( filled ?i ?j ) ( true ( cell ?i ?j ?m ) ) )
 
 ( <= ( next ( cell ?i ?j ?p ) ) ( does ?p ( ttt_mark ?i ?j ) ) )

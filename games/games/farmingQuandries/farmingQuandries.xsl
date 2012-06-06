@@ -1,6 +1,6 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:param name="width" select="500"/>
-<xsl:param name="height" select="500"/>
+<xsl:param name="width" select="300"/>
+<xsl:param name="height" select="300"/>
 <xsl:template name="main" match="/">  
   <div> <!-- Set Style -->    
   <style type="text/css" media="all"> 
