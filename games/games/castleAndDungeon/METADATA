@@ -1,6 +1,7 @@
 {
   "gameName": "Castle and Dungeon",
-  "rulesheet": "castleAndDungeon.kif"
+  "rulesheet": "castleAndDungeon.kif",
+  "stylesheet": "castleAndDungeon.xsl"
 }
 
 
