@@ -6,24 +6,26 @@
 ( init ( at castle thief black 1 1 ) )
 ( init ( at castle guard black 1 2 ) )
 ( init ( at castle wizard black 2 1 ) )
-( init ( frost col black ) )
-( init ( alive castle thief white ) )
+( init ( frost row black ) )
 ( init ( treasure castle black 4 4 ) )
+
+( init ( alive castle thief white ) )
 ( init ( at castle thief white 4 4 ) )
-( init ( at castle guard white 3 4 ) )
-( init ( at castle wizard white 4 3 ) )
-( init ( frost col white ) )
+( init ( at castle guard white 4 3 ) )
+( init ( at castle wizard white 3 4 ) )
+( init ( frost row white ) )
 ( init ( treasure castle white 1 1 ) )
 
 ( init ( alive dungeon thief black ) )
 ( init ( at dungeon thief black 1 1 ) )
-( init ( at dungeon dragon black 2 2 ) )
-( init ( fireball fire_right 2 3 ) )
+( init ( at dungeon dragon black 2 1 ) )
+( init ( fireball fire_down 2 2 ) )
 ( init ( treasure dungeon black 4 4 ) )
+
 ( init ( alive dungeon thief white ) )
 ( init ( at dungeon thief white 4 4 ) )
-( init ( at dungeon dragon white 3 3 ) )
-( init ( fireball fire_left 3 2 ) )
+( init ( at dungeon dragon white 3 4 ) )
+( init ( fireball fire_up 3 3 ) )
 ( init ( treasure dungeon white 1 1 ) )
 
 ( init ( step castle 0 ) )
@@ -42,10 +44,10 @@
 
 ( board_succ castle 1 2 )
 ( board_succ castle 2 3 )
-( board_succ castle 3 4 ) 
+( board_succ castle 3 4 )
 ( board_succ dungeon 1 2 )
 ( board_succ dungeon 2 3 )
-( board_succ dungeon 3 4 ) 
+( board_succ dungeon 3 4 )
 
 ( fire_direction fire_up )
 ( fire_direction fire_down )
@@ -106,7 +108,7 @@
 
 ( <= ( next ( treasure ?f ?p ?i ?j ) ) ( true ( treasure ?f ?p ?i ?j ) ) )
 
-( <= ( next ( true ( alive ?f ?e ?p ) ) ) ( true ( alive ?f ?e ?p ) ) ( not ( dying ?f ?e ?p ) ) )
+( <= ( next ( alive ?f ?e ?p ) ) ( true ( alive ?f ?e ?p ) ) ( not ( dying ?f ?e ?p ) ) )
 
 ( <= ( next ( fireball fire_up ?i ?j ) ) ( does ?p ( breath_fire fire_up ) )
   ( true ( at dungeon dragon ?p ?m ?j ) ) ( board_succ dungeon ?i ?m ) )
@@ -116,14 +118,16 @@
   ( true ( at dungeon dragon ?p ?i ?n ) ) ( board_succ dungeon ?j ?n ) )
 ( <= ( next ( fireball fire_right ?i ?j ) ) ( does ?p ( breath_fire fire_right ) )
   ( true ( at dungeon dragon ?p ?i ?n ) ) ( board_succ dungeon ?n ?j ) )
-( <= ( next ( fireball fire_up ?i ?j ) ) ( true ( fireball fire_up ?m ?j ) )
-  ( board_succ dungeon ?i ?m ) )
-( <= ( next ( fireball fire_down ?i ?j ) ) ( true ( fireball fire_up ?m ?j ) )
-  ( board_succ dungeon ?m ?i ) )
-( <= ( next ( fireball fire_left ?i ?j ) ) ( true ( fireball fire_up ?i ?n ) )
-  ( board_succ dungeon ?j ?n ) )
-( <= ( next ( fireball fire_right ?i ?j ) ) ( true ( fireball fire_up ?i ?n ) )
-  ( board_succ dungeon ?n ?j ) )
+
+; Enable these rules if you want fireballs to propagate across the board
+;( <= ( next ( fireball fire_up ?i ?j ) ) ( true ( fireball fire_up ?m ?j ) )
+;  ( board_succ dungeon ?i ?m ) )
+;( <= ( next ( fireball fire_down ?i ?j ) ) ( true ( fireball fire_down ?m ?j ) )
+;  ( board_succ dungeon ?m ?i ) )
+;( <= ( next ( fireball fire_left ?i ?j ) ) ( true ( fireball fire_left ?i ?n ) )
+;  ( board_succ dungeon ?j ?n ) )
+;( <= ( next ( fireball fire_right ?i ?j ) ) ( true ( fireball fire_right ?i ?n ) )
+;  ( board_succ dungeon ?n ?j ) )
 
 ( <= ( move_in ?f ) ( move ?f ?e ?p ) )
 ( <= ( move_in castle ) ( casting ?p ) )
