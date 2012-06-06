@@ -1,6 +1,7 @@
 {
   "gameName": "Farming Quandries",
-  "rulesheet": "farmingQuandries.kif"
+  "rulesheet": "farmingQuandries.kif",
+  "stylesheet": "farmingQuandries.xsl"
 }
 
 
