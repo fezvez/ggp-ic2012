@@ -37,6 +37,12 @@
 ( <= ( base ( has_force_noop ?p ) ) ( role ?p ) )
 ( <= ( base ( forced ?p ) ) ( role ?p ) )
 
+( <= ( input ?p ( freeze ?e ) ) ( role ?p ) ( sheep_index ?e ) )
+( <= ( input ?p ( burn ?e ) ) ( role ?p ) ( sheep_index ?e ) )
+( <= ( input ?p ( kill ?e ) ) ( role ?p ) ( sheep_index ?e ) )
+( <= ( input ?p ( force_noop ?q ) ) ( role ?p ) ( role ?q ) )
+( <= ( input ?p noop ) ( role ?p ) )
+
 ( base ( grass blue 8 6 ) )
 ( base ( grass red 6 8 ) )
 
