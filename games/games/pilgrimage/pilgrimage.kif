@@ -1,0 +1,54 @@
+
+
+( role red )
+( role blue )
+
+( init ( builder red 2 2 ) )
+( init ( builder red 2 5 ) )
+( init ( builder blue 5 5 ) )
+( init ( builder blue 5 2 ) )
+( init ( phase beacon red ) )
+( init ( phase beacon blue ) )
+
+( phase beacon )
+( phase build )
+( phase place_pilgrim )
+( phase pilgrimage )
+
+( index 1 )
+( index 2 )
+( index 3 )
+( index 4 )
+( index 5 )
+( index 6 )
+
+( board_succ 1 2 )
+( board_succ 2 3 )
+( board_succ 3 4 )
+( board_succ 4 5 )
+( board_succ 5 6 )
+
+( height 1 )
+( height 2 )
+( height 3 )
+( height 4 )
+( height 5 )
+
+( height_succ 1 2 )
+( height_succ 2 3 )
+( height_succ 3 4 )
+( height_succ 4 5 )
+
+
+( <= ( base ( cell ?i ?j ?h ) ) ( index ?i ) ( index ?j ) ( height ?h ) )
+( <= ( base ( beacon_pos ?i ?j ) ) ( index ?i ) ( index ?j ) )
+( <= ( phase ?s ?p ) 
+
+
+
+
+
+
+
+
+

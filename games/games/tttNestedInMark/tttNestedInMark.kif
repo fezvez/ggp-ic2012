@@ -34,9 +34,11 @@
 ( <= ( next ( cell ?i ?j meta ) ) ( does ?p ( meta_mark ?i ?j ) ) )
 ( <= ( next ( cell ?i ?j ?m ) ) ( true ( cell ?i ?j ?m ) ) ( not ( clear ?i ?j ) ) )
 
-( <= ( next ( control oplayer ) ) ( true ( control xplayer ) ) ( role ?p ) ( not ( true ( meta_phase ?p ) ) ) )
-( <= ( next ( control xplayer ) ) ( true ( control oplayer ) ) ( role ?p ) ( not ( true ( meta_phase ?p ) ) ) )
-( <= ( next ( control ?p ) ) ( true ( control ?p ) ) ( true ( meta_phase ?p ) ) )
+;( <= ( next ( control oplayer ) ) ( true ( control xplayer ) ) ( role ?p ) ( not ( true ( meta_phase ?p ) ) ) )
+;( <= ( next ( control xplayer ) ) ( true ( control oplayer ) ) ( role ?p ) ( not ( true ( meta_phase ?p ) ) ) )
+( <= ( next ( control oplayer ) ) ( true ( control xplayer ) ) ( role ?p ) )
+( <= ( next ( control xplayer ) ) ( true ( control oplayer ) ) ( role ?p ) )
+;( <= ( next ( control ?p ) ) ( true ( control ?p ) ) ( true ( meta_phase ?p ) ) )
 ( <= ( next ( meta_phase ?p ) ) ( role ?p ) ( ttt_terminal ) ( not ( true ( meta_phase ?p ) ) ) )
 
 ( <= ( next ( can_meta_mark ?p ) ) ( role ?p ) ( line ?p ) )

@@ -123,12 +123,12 @@
 ( <= ( increment ?p ) ( collect_col ?p ) ( not ( double_increment ?p ) ) ) 
 
 ( <= ( next ( score ?p ?s ) ) ( true ( score ?p ?o ) ) ( increment ?p ) 
-  ( succ ?o ?s ) ( not ( true ( score ?p 100 ) ) ) )
+  ( succ ?o ?s ) ( not ( true ( score ?p 50 ) ) ) )
 ( <= ( next ( score ?p ?s ) ) ( true ( score ?p ?m ) ) ( double_increment ?p ) 
-  ( succ ?m ?o ) ( succ ?o ?s ) ( not ( true ( score ?p 100 ) ) ) ( not ( true ( score ?p 99 ) ) ) )
-( <= ( next ( score ?p 100 ) ) ( true ( score ?p 99 ) ) ( double_increment ?p ) )
+  ( succ ?m ?o ) ( succ ?o ?s ) ( not ( true ( score ?p 50 ) ) ) ( not ( true ( score ?p 49 ) ) ) )
+( <= ( next ( score ?p 50 ) ) ( true ( score ?p 49 ) ) ( double_increment ?p ) )
 ( <= ( next ( score ?p ?s ) ) ( true ( score ?p ?s ) ) ( not ( increment ?p ) ) ( not ( double_increment ?p ) ) )
-( <= ( next ( score ?p 100 ) ) ( true ( score ?p 100 ) ) )
+( <= ( next ( score ?p 50 ) ) ( true ( score ?p 50 ) ) )
 
 ( <= ( goal_assem ?p ?s ) ( true ( score ?p ?s ) ) )
 
@@ -246,5 +246,4 @@
 ( succ 47 48 )
 ( succ 48 49 )
 ( succ 49 50 )
-
 

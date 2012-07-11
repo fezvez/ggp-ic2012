@@ -1,5 +1,6 @@
 {
   "gameName": "Tic Tac Heaven Factor Control",
   "rulesheet": "ticTacHeavenFC.kif",
-  "stylesheet": "ticTacHeavenFC.xsl"
+  "stylesheet": "ticTacHeavenFC.xsl",
+  "description": "ticTacHeavenFC.txt"
 }
